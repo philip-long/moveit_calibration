@@ -78,8 +78,11 @@ bool HandEyeSolverDefault::solve(const std::vector<Eigen::Isometry3d>& effector_
     return false;
   }
 
+  // Philip had to change this https://stackoverflow.com/questions/18245140/how-do-you-use-the-python3-c-api-for-a-command-line-driven-app
   char program_name[7] = "python";
-  Py_SetProgramName(program_name);
+  wchar_t *program_name_w=Py_DecodeLocale(program_name,NULL);
+  Py_SetProgramName(program_name_w);
+
   static bool numpy_loaded{ false };
   if (!numpy_loaded)  // Py_Initialize() can only be called once when numpy is
                       // loaded, otherwise will segfault
@@ -100,8 +103,8 @@ bool HandEyeSolverDefault::solve(const std::vector<Eigen::Isometry3d>& effector_
   PyObject *python_name, *python_module, *python_class, *python_instance, *python_func_add_sample, *python_func_solve;
   PyObject *python_args, *python_value;
 
-  // Import handeye.calibrator python module
-  python_name = PyString_FromString("handeye.calibrator");
+  // Import handeye.calibrator python module Philip Changin
+  python_name = PyUnicode_FromString("handeye.calibrator");
   python_module = PyImport_Import(python_name);
   Py_DECREF(python_name);
   if (!python_module)
@@ -123,11 +126,11 @@ bool HandEyeSolverDefault::solve(const std::vector<Eigen::Isometry3d>& effector_
   }
 
   // Parse sensor mount type
-  python_value = PyString_FromString("");
+  python_value = PyUnicode_FromString("");
   if (setup == EYE_TO_HAND)
-    python_value = PyString_FromString("Fixed");
+    python_value = PyUnicode_FromString("Fixed");
   else if (setup == EYE_IN_HAND)
-    python_value = PyString_FromString("Moving");
+    python_value = PyUnicode_FromString("Moving");
   if (!python_value)
   {
     ROS_ERROR_STREAM_NAMED(LOGNAME, "Can't creat sensor mount type python value");
@@ -267,7 +270,7 @@ bool HandEyeSolverDefault::solve(const std::vector<Eigen::Isometry3d>& effector_
       PyErr_Print();
       return false;
     }
-    ROS_DEBUG_STREAM_NAMED(LOGNAME, "num_samples: " << PyInt_AsLong(python_value));
+    ROS_DEBUG_STREAM_NAMED(LOGNAME, "num_samples: " << PyLong_AsLong(python_value));
     Py_DECREF(python_value);
   }
   Py_DECREF(python_func_add_sample);
@@ -294,7 +297,7 @@ bool HandEyeSolverDefault::solve(const std::vector<Eigen::Isometry3d>& effector_
   }
 
   // Import handeye.solver python module
-  python_name = PyString_FromString("handeye.solver");
+  python_name = PyUnicode_FromString("handeye.solver");
   python_module = PyImport_Import(python_name);
   Py_DECREF(python_name);
   if (!python_module)

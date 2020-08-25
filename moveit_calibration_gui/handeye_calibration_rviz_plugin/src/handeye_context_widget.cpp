@@ -57,6 +57,9 @@ void TFFrameNameComboBox::mousePressEvent(QMouseEvent* event)
       auto it = std::find(robot_links.begin(), robot_links.end(), name);
       size_t index = name.find("camera");
 
+      if(index==std::string::npos) // Philip adding this to look for kinect
+          index = name.find("kinect");
+
       if (frame_source_ == ROBOT_FRAME)
         if (it != robot_links.end())
           addItem(QString(name.c_str()));
@@ -154,7 +157,7 @@ void SliderWidget::changeSlider()
   Q_EMIT valueChanged(value);
 }
 
-ContextTabWidget::ContextTabWidget(QWidget* parent) : QWidget(parent), tf_listener_(tf_buffer_)
+ContextTabWidget::ContextTabWidget(QWidget* parent) : tf_listener_(tf_buffer_),QWidget(parent)
 {
   // Context setting tab ----------------------------------------------------
   QHBoxLayout* layout = new QHBoxLayout();
